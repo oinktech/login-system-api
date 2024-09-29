@@ -111,89 +111,104 @@
     </div>
 
     <script>
-        function showMessage(type, message) {
-            const messageDiv = document.getElementById('message');
-            messageDiv.innerHTML = `<span class="${type}-message">${message}</span>`;
-        }
-
-        document.getElementById('registerForm').addEventListener('submit', async (event) => {
-            event.preventDefault();
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
             const username = document.getElementById('registerUsername').value;
             const password = document.getElementById('registerPassword').value;
 
             const response = await fetch('/api/register', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify({ username, password })
             });
 
-            const data = await response.json();
+            const messageDiv = document.getElementById('message');
+            const message = await response.json();
+            messageDiv.innerHTML = message.message;
+
             if (response.ok) {
-                showMessage('success', data.message);
+                messageDiv.classList.add('success-message');
+                document.getElementById('registerForm').reset();
             } else {
-                showMessage('error', data.message);
+                messageDiv.classList.add('error-message');
             }
         });
 
-        document.getElementById('loginForm').addEventListener('submit', async (event) => {
-            event.preventDefault();
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
             const username = document.getElementById('loginUsername').value;
             const password = document.getElementById('loginPassword').value;
 
             const response = await fetch('/api/login', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify({ username, password })
             });
 
-            const data = await response.json();
+            const messageDiv = document.getElementById('message');
+            const message = await response.json();
+            messageDiv.innerHTML = message.message;
+
             if (response.ok) {
-                showMessage('success', data.message);
+                messageDiv.classList.add('success-message');
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('registerForm').style.display = 'none';
                 document.getElementById('apiForm').style.display = 'block';
-                fetchUserApis();
+                document.getElementById('apiList').style.display = 'block';
+                getUserApis(); // 獲取用戶生成的 API
             } else {
-                showMessage('error', data.message);
+                messageDiv.classList.add('error-message');
             }
         });
 
-        document.getElementById('apiForm').addEventListener('submit', async (event) => {
-            event.preventDefault();
+        document.getElementById('apiForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
             const apiName = document.getElementById('apiName').value;
 
             const response = await fetch('/api/generate', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify({ name: apiName })
             });
 
-            const data = await response.json();
+            const messageDiv = document.getElementById('message');
+            const message = await response.json();
+            messageDiv.innerHTML = message.message;
+
             if (response.ok) {
-                document.getElementById('apiCode').innerText = data.code;
-                document.getElementById('apiCode').style.display = 'block';
+                messageDiv.classList.add('success-message');
+                document.getElementById('apiCode').innerText = message.code;
                 document.getElementById('apiCodes').style.display = 'block';
-                fetchUserApis();
+                document.getElementById('apiName').value = '';
+                getUserApis(); // 更新 API 列表
             } else {
-                showMessage('error', data.message);
+                messageDiv.classList.add('error-message');
             }
         });
 
-        async function fetchUserApis() {
+        async function getUserApis() {
             const response = await fetch('/api/user/apis');
-            const apis = await response.json();
             const apisContainer = document.getElementById('apisContainer');
-            apisContainer.innerHTML = '';
+            apisContainer.innerHTML = ''; // 清空現有 API 列表
 
-            if (Array.isArray(apis) && apis.length > 0) {
+            if (response.ok) {
+                const apis = await response.json();
                 apis.forEach(api => {
                     const apiItem = document.createElement('div');
-                    apiItem.classList.add('api-item');
+                    apiItem.className = 'api-item';
                     apiItem.innerHTML = `
                         <strong>${api[1]}</strong>
+                        <div>${api[2]}</div>
                         <button onclick="deleteApi(${api[0]})">刪除</button>
                     `;
                     apisContainer.appendChild(apiItem);
                 });
-                document.getElementById('apiList').style.display = 'block';
             }
         }
 
@@ -202,12 +217,8 @@
                 method: 'DELETE'
             });
 
-            const data = await response.json();
             if (response.ok) {
-                showMessage('success', data.message);
-                fetchUserApis();
-            } else {
-                showMessage('error', data.message);
+                getUserApis(); // 更新 API 列表
             }
         }
     </script>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API 示例頁面</title>
+</head>
+<body>
+    <h1>API 示例頁面</h1>
+    <p>使用以下代碼引入 API：</p>
+    <pre>
+        <code>
+            &lt;script&gt;
+                async function callApi() {
+                    const response = await fetch('https://login-system-api-zzmx.onrender.com/api/your_api_endpoint');
+                    const data = await response.json();
+                    console.log(data);
+                }
+                callApi();
+            &lt;/script&gt;
+        </code>
+    </pre>
+</body>
+</html>

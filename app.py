@@ -28,15 +28,15 @@ def register():
     data = request.json
     username = data.get('username')
     password = data.get('password')
-    
+
     if os.path.exists(f'{username}.db'):
         return jsonify({'message': '用戶名已存在'}), 400
-    
-    # 密碼雜湊
+
+    # 密碼哈希
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
     with open('users.txt', 'a') as f:
         f.write(f"{username},{hashed_password}\n")
-    
+
     init_db(username)  # 為用戶創建數據庫
     return jsonify({'message': '註冊成功'}), 201
 
@@ -46,18 +46,18 @@ def login():
     data = request.json
     username = data.get('username')
     password = data.get('password')
-    
+
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
-    
+
     with open('users.txt', 'r') as f:
         users = f.readlines()
-    
+
     for user in users:
         user_info = user.strip().split(',')
         if user_info[0] == username and user_info[1] == hashed_password:
             session['username'] = username
             return jsonify({'message': '登入成功'}), 200
-    
+
     return jsonify({'message': '用戶名或密碼錯誤'}), 401
 
 # 登出
@@ -66,7 +66,7 @@ def logout():
     session.pop('username', None)
     return redirect(url_for('index'))
 
-# 主頁
+# 主頁面
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -79,19 +79,18 @@ def generate_api():
 
     data = request.json
     api_name = data.get('name')
-    special_id = os.urandom(4).hex()  # 生成專屬編號
     api_code = f"""
     <script>
         async function callApi() {{
-            const response = await fetch('https://login-system-api-zzmx.onrender.com/api/{session["username"]}/{special_id}');
+            const response = await fetch('https://login-system-api-zzmx.onrender.com/api/{session["username"]}/{api_name}');
             const data = await response.json();
             console.log(data);
         }}
     </script>
     callApi();
     """
-    
-    # 儲存到數據庫
+
+    # 保存到數據庫
     conn = sqlite3.connect(f'{session["username"]}.db')
     cursor = conn.cursor()
     cursor.execute('INSERT INTO apis (name, code) VALUES (?, ?)', (api_name, api_code))
@@ -111,7 +110,7 @@ def user_apis():
     cursor.execute('SELECT * FROM apis')
     apis = cursor.fetchall()
     conn.close()
-    
+
     return jsonify(apis), 200
 
 # 刪除 API

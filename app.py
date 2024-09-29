@@ -82,7 +82,7 @@ def generate_api():
     api_code = f"""
     <script>
         async function callApi() {{
-            const response = await fetch('https://login-system-api-zzmx.onrender.com/api/your_api_endpoint');
+            const response = await fetch('http://127.0.0.1:5000/api/{api_name}');
             const data = await response.json();
             console.log(data);
         }}
@@ -113,10 +113,41 @@ def user_apis():
     
     return jsonify(apis), 200
 
+# 刪除 API
+@app.route('/api/user/apis/<int:api_id>', methods=['DELETE'])
+def delete_api(api_id):
+    if 'username' not in session:
+        return jsonify({'message': '未登入'}), 401
+
+    conn = sqlite3.connect(f'{session["username"]}.db')
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM apis WHERE id = ?', (api_id,))
+    conn.commit()
+    conn.close()
+
+    return jsonify({'message': 'API 已刪除'}), 200
+
+# 更新 API
+@app.route('/api/user/apis/<int:api_id>', methods=['PUT'])
+def update_api(api_id):
+    if 'username' not in session:
+        return jsonify({'message': '未登入'}), 401
+
+    data = request.json
+    api_name = data.get('name')
+
+    conn = sqlite3.connect(f'{session["username"]}.db')
+    cursor = conn.cursor()
+    cursor.execute('UPDATE apis SET name = ? WHERE id = ?', (api_name, api_id))
+    conn.commit()
+    conn.close()
+
+    return jsonify({'message': 'API 已更新'}), 200
+
 # 渲染示例頁面
 @app.route('/example')
 def example():
     return render_template('example.html')
 
 if __name__ == '__main__':
-    app.run(debug=True,host='0.0.0.0',port=10000)
+    app.run(debug=True)

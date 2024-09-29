@@ -5,91 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>登入系統</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            padding: 50px;
-        }
-        .container {
-            max-width: 500px;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        button {
-            padding: 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .api-code {
-            background: #f9f9f9;
-            border: 1px solid #ddd;
-            padding: 10px;
-            border-radius: 5px;
-            white-space: pre-wrap;
-            margin-top: 10px;
-        }
-        .api-list {
-            margin-top: 20px;
-        }
-        .api-item {
-            background: #f9f9f9;
-            border: 1px solid #ddd;
-            padding: 10px;
-            border-radius: 5px;
-            margin: 10px 0;
-        }
-        .api-item button {
-            background-color: #dc3545;
-        }
-        .api-item button:hover {
-            background-color: #c82333;
-        }
+        body { font-family: Arial, sans-serif; }
+        #apiForm, #apiCodes, #apiList { display: none; }
+        .api-item { margin: 10px 0; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>登入系統</h2>
-        <form id="registerForm">
-            <h3>註冊</h3>
-            <input type="text" id="registerUsername" placeholder="用戶名" required>
-            <input type="password" id="registerPassword" placeholder="密碼" required>
-            <button type="submit">註冊</button>
-        </form>
-        <form id="loginForm">
-            <h3>登入</h3>
-            <input type="text" id="loginUsername" placeholder="用戶名" required>
-            <input type="password" id="loginPassword" placeholder="密碼" required>
-            <button type="submit">登入</button>
-        </form>
-        <form id="apiForm" style="display:none;">
-            <h3>生成 API</h3>
-            <input type="text" id="apiName" placeholder="API 名稱" required>
-            <button type="submit">生成</button>
-        </form>
-        <div id="apiCodes" style="display:none;">
-            <h3>生成的 API 代碼</h3>
-            <div class="api-code" id="apiCode"></div>
-        </div>
-        <div class="api-list" id="apiList" style="display:none;">
-            <h3>管理生成的 API</h3>
-            <div id="apisContainer"></div>
-        </div>
+    <h1>用戶登入系統</h1>
+    
+    <h2>註冊</h2>
+    <form id="registerForm">
+        <input type="text" id="registerUsername" placeholder="用戶名" required>
+        <input type="password" id="registerPassword" placeholder="密碼" required>
+        <button type="submit">註冊</button>
+    </form>
+
+    <h2>登入</h2>
+    <form id="loginForm">
+        <input type="text" id="loginUsername" placeholder="用戶名" required>
+        <input type="password" id="loginPassword" placeholder="密碼" required>
+        <button type="submit">登入</button>
+    </form>
+
+    <h2>生成 API</h2>
+    <form id="apiForm">
+        <input type="text" id="apiName" placeholder="API 名稱" required>
+        <button type="submit">生成 API</button>
+    </form>
+
+    <h2>用戶 API 列表</h2>
+    <div id="apisContainer"></div>
+    <div id="apiList" style="display: none;">
+        <h3>我的 API</h3>
+    </div>
+
+    <div id="apiCodes">
+        <h3>生成的 API 代碼：</h3>
+        <pre id="apiCode"></pre>
     </div>
 
     <script>
@@ -123,18 +75,19 @@
             alert(data.message);
             if (response.ok) {
                 document.getElementById('apiForm').style.display = 'block';
-                loadUserApis();
+                loadUserApis(username); // 傳遞用戶名以加載API
             }
         };
 
         document.getElementById('apiForm').onsubmit = async function(e) {
             e.preventDefault();
             const apiName = document.getElementById('apiName').value;
+            const username = document.getElementById('loginUsername').value; // 獲取當前用戶名
 
             const response = await fetch('/api/generate', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({name: apiName})
+                body: JSON.stringify({username, name: apiName})
             });
 
             const data = await response.json();
@@ -142,12 +95,12 @@
             if (response.ok) {
                 document.getElementById('apiCode').innerText = data.code;
                 document.getElementById('apiCodes').style.display = 'block';
-                loadUserApis();
+                loadUserApis(username);
             }
         };
 
-        async function loadUserApis() {
-            const response = await fetch('/api/user/apis');
+        async function loadUserApis(username) {
+            const response = await fetch(`/api/user/apis?username=${username}`);
             const apis = await response.json();
             const container = document.getElementById('apisContainer');
             container.innerHTML = '';

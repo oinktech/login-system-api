@@ -11,7 +11,7 @@
             padding: 50px;
         }
         .container {
-            max-width: 400px;
+            max-width: 500px;
             margin: auto;
             background: white;
             padding: 20px;
@@ -42,6 +42,23 @@
             padding: 10px;
             border-radius: 5px;
             white-space: pre-wrap;
+            margin-top: 10px;
+        }
+        .api-list {
+            margin-top: 20px;
+        }
+        .api-item {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .api-item button {
+            background-color: #dc3545;
+        }
+        .api-item button:hover {
+            background-color: #c82333;
         }
     </style>
 </head>
@@ -68,6 +85,10 @@
         <div id="apiCodes" style="display:none;">
             <h3>生成的 API 代碼</h3>
             <div class="api-code" id="apiCode"></div>
+        </div>
+        <div class="api-list" id="apiList" style="display:none;">
+            <h3>管理生成的 API</h3>
+            <div id="apisContainer"></div>
         </div>
     </div>
 
@@ -102,7 +123,7 @@
             alert(data.message);
             if (response.ok) {
                 document.getElementById('apiForm').style.display = 'block';
-                getUserApis();
+                loadUserApis();
             }
         };
 
@@ -121,13 +142,34 @@
             if (response.ok) {
                 document.getElementById('apiCode').innerText = data.code;
                 document.getElementById('apiCodes').style.display = 'block';
+                loadUserApis();
             }
         };
 
-        async function getUserApis() {
+        async function loadUserApis() {
             const response = await fetch('/api/user/apis');
             const apis = await response.json();
-            console.log(apis); // 可以進一步在頁面上顯示用戶的 API
+            const container = document.getElementById('apisContainer');
+            container.innerHTML = '';
+            apis.forEach(api => {
+                const apiDiv = document.createElement('div');
+                apiDiv.className = 'api-item';
+                apiDiv.innerHTML = `
+                    <strong>${api[1]}</strong>
+                    <button onclick="deleteApi(${api[0]})">刪除</button>
+                `;
+                container.appendChild(apiDiv);
+            });
+            document.getElementById('apiList').style.display = 'block';
+        }
+
+        async function deleteApi(apiId) {
+            const response = await fetch(`/api/user/apis/${apiId}`, {
+                method: 'DELETE',
+            });
+            const data = await response.json();
+            alert(data.message);
+            loadUserApis();
         }
     </script>
 </body>

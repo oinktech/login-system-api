@@ -82,7 +82,7 @@ def generate_api():
     api_code = f"""
     <script>
         async function callApi() {{
-            const response = await fetch('http://127.0.0.1:5000/api/your_api_endpoint');
+            const response = await fetch('https://login-system-api-zzmx.onrender.com/api/your_api_endpoint');
             const data = await response.json();
             console.log(data);
         }}
@@ -119,4 +119,4 @@ def example():
     return render_template('example.html')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True,host='0.0.0.0',port=10000)

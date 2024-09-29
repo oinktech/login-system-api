@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登入系統</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            padding: 50px;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .api-code {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>登入系統</h2>
+        <form id="registerForm">
+            <h3>註冊</h3>
+            <input type="text" id="registerUsername" placeholder="用戶名" required>
+            <input type="password" id="registerPassword" placeholder="密碼" required>
+            <button type="submit">註冊</button>
+        </form>
+        <form id="loginForm">
+            <h3>登入</h3>
+            <input type="text" id="loginUsername" placeholder="用戶名" required>
+            <input type="password" id="loginPassword" placeholder="密碼" required>
+            <button type="submit">登入</button>
+        </form>
+        <form id="apiForm" style="display:none;">
+            <h3>生成 API</h3>
+            <input type="text" id="apiName" placeholder="API 名稱" required>
+            <button type="submit">生成</button>
+        </form>
+        <div id="apiCodes" style="display:none;">
+            <h3>生成的 API 代碼</h3>
+            <div class="api-code" id="apiCode"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const username = document.getElementById('registerUsername').value;
+            const password = document.getElementById('registerPassword').value;
+
+            const response = await fetch('/api/register', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username, password})
+            });
+
+            const data = await response.json();
+            alert(data.message);
+        };
+
+        document.getElementById('loginForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username, password})
+            });
+
+            const data = await response.json();
+            alert(data.message);
+            if (response.ok) {
+                document.getElementById('apiForm').style.display = 'block';
+                getUserApis();
+            }
+        };
+
+        document.getElementById('apiForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const apiName = document.getElementById('apiName').value;
+
+            const response = await fetch('/api/generate', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name: apiName})
+            });
+
+            const data = await response.json();
+            alert(data.message);
+            if (response.ok) {
+                document.getElementById('apiCode').innerText = data.code;
+                document.getElementById('apiCodes').style.display = 'block';
+            }
+        };
+
+        async function getUserApis() {
+            const response = await fetch('/api/user/apis');
+            const apis = await response.json();
+            console.log(apis); // 可以進一步在頁面上顯示用戶的 API
+        }
+    </script>
+</body>
+</html>
